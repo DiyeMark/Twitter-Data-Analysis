@@ -26,7 +26,7 @@ def read_json(json_file: str) -> tuple[int, list[Any]]:
 
 class TweetDfExtractor:
     """
-    this function will parse tweets json into a pandas dataframe
+    this class will parse tweets json into a pandas dataframe
     
     Return
     ------
@@ -43,14 +43,35 @@ class TweetDfExtractor:
         return statuses_count
 
     def find_full_text(self) -> list:
-        text = []
-        for tweet in self.tweets_list:
-            if 'retweeted_status' in tweet.keys() and 'extended_tweet' in tweet['retweeted_status'].keys():
-                text.append(tweet['retweeted_status']['extended_tweet']['full_text'])
-            else:
-                text.append("NO FULL TEXT")
+        # text = []
+        # for tweet in self.tweets_list:
+        #     if 'retweeted_status' in tweet.keys() and 'extended_tweet' in tweet['retweeted_status'].keys():
+        #         text.append(tweet['retweeted_status']['extended_tweet']['full_text'])
+        #     else:
+        #         text.append('Empty')
+        #
+        text = [tweet['text'] for tweet in self.tweets_list]
 
         return text
+
+    # TODO: find out what clean_text and replace full_text with clean_text
+    def find_clean_text(self) -> list:
+        clean_text = []
+        for tweet in self.tweets_list:
+            if 'retweeted_status' in tweet.keys() and 'extended_tweet' in tweet['retweeted_status'].keys():
+                clean_text.append(tweet['retweeted_status']['extended_tweet']['full_text'])
+            else:
+                clean_text.append("NO FULL TEXT")
+
+        return clean_text
+
+    def find_sentiment(self, text: list) -> list:
+        sentiment = []
+        for tweet in text:
+            blob = TextBlob(tweet)
+            sentiment.append(blob.sentiment)
+
+        return sentiment
 
     def find_sentiments(self, text: list) -> tuple[list[Any], list[Any]]:
         polarity, subjectivity = [], []
@@ -82,6 +103,12 @@ class TweetDfExtractor:
         screen_name = [tweet['user']['screen_name'] for tweet in self.tweets_list]
 
         return screen_name
+
+    # TODO: find out what screen_count and relace screen_name with screen_count
+    def find_screen_count(self) -> list:
+        screen_count = [tweet['user']['screen_name'] for tweet in self.tweets_list]
+
+        return screen_count
 
     def find_followers_count(self) -> list:
         followers_count = [tweet['user']['followers_count'] for tweet in self.tweets_list]
@@ -140,28 +167,44 @@ class TweetDfExtractor:
 
         return location
 
+    def find_place_coord_boundaries(self) -> list:
+        coord_boundaries = []
+        for tweet in self.tweets_list:
+            coord_boundaries.append(tweet['coordinates'])
+
+        return coord_boundaries
+
     def get_tweet_df(self, save=True) -> pd.DataFrame:
         """required column to be generated you should be creative and add more features"""
 
-        columns = ['created_at', 'source', 'original_text', 'polarity', 'subjectivity', 'lang', 'favorite_count',
-                   'retweet_count',
-                   'original_author', 'followers_count', 'friends_count', 'possibly_sensitive', 'hashtags',
-                   'user_mentions', 'place']
+        columns = ['created_at', 'source', 'original_text', 'polarity', 'subjectivity',
+                   'lang', 'favorite_count', 'retweet_count', 'original_author', 'followers_count',
+                   'friends_count', 'possibly_sensitive', 'hashtags', 'user_mentions', 'place']
+
+        # columns = ['created_at', 'source', 'original_text', 'clean_text', 'sentiment', 'polarity', 'subjectivity',
+        #            'lang', 'favorite_count', 'retweet_count', 'original_author', 'screen_count', 'followers_count',
+        #            'friends_count', 'possibly_sensitive', 'hashtags', 'user_mentions', 'place',
+        #            'place_coord_boundaries']
 
         created_at = self.find_created_time()
         source = self.find_source()
         text = self.find_full_text()
+        # clean_text = self.find_clean_text()
+        # sentiment = self.find_sentiment()
         polarity, subjectivity = self.find_sentiments(text)
         lang = self.find_lang()
         fav_count = self.find_favourite_count()
         retweet_count = self.find_retweet_count()
         screen_name = self.find_screen_name()
+        # screen_count = self.find_screen_count()
         follower_count = self.find_followers_count()
         friends_count = self.find_friends_count()
         sensitivity = self.is_sensitive()
         hashtags = self.find_hashtags()
         mentions = self.find_mentions()
         location = self.find_location()
+        # place_coord_boundaries = self.find_place_coord_boundaries()
+
         data = zip(created_at, source, text, polarity, subjectivity, lang, fav_count, retweet_count, screen_name,
                    follower_count, friends_count, sensitivity, hashtags, mentions, location)
         df = pd.DataFrame(data=data, columns=columns)
@@ -174,13 +217,6 @@ class TweetDfExtractor:
 
 
 if __name__ == "__main__":
-    # required column to be generated you should be creative and add more features columns = ['created_at', 'source',
-    # 'original_text', 'clean_text', 'sentiment', 'polarity', 'subjectivity', 'lang', 'favorite_count',
-    # 'retweet_count', 'original_author', 'screen_count', 'followers_count', 'friends_count', 'possibly_sensitive',
-    # 'hashtags', 'user_mentions', 'place', 'place_coord_boundaries']
-
     _, tweet_list = read_json("data/Economic_Twitter_Data.json")
     tweet = TweetDfExtractor(tweet_list)
     tweet_df = tweet.get_tweet_df()
-
-    # use all defined functions to generate a dataframe with the specified columns above
