@@ -1,13 +1,12 @@
 import json
-from typing import Tuple, List, Any
-
 import pandas as pd
 from textblob import TextBlob
 import spacy
+
 nlp = spacy.load('en_core_web_sm')
 
 
-def read_json(json_file: str)->list:
+def read_json(json_file: str) -> list:
     """
     json file reader to open and read json files into a list
     Args:
@@ -71,7 +70,7 @@ class TweetDfExtractor:
 
         return sentiment
 
-    def find_sentiments(self, text: list) -> tuple[list[Any], list[Any]]:
+    def find_sentiments(self, text: list) -> list:
         polarity, subjectivity = [], []
 
         for tweet in text:
@@ -177,7 +176,8 @@ class TweetDfExtractor:
 
     def get_tweet_df(self, save=True) -> pd.DataFrame:
         """required column to be generated you should be creative and add more features"""
-        columns = ['created_at', 'status', 'source', 'original_text', 'clean_text', 'sentiment', 'polarity', 'subjectivity',
+        columns = ['created_at', 'status', 'source', 'original_text', 'clean_text', 'sentiment', 'polarity',
+                   'subjectivity',
                    'lang', 'favorite_count', 'retweet_count', 'original_author', 'followers_count',
                    'friends_count', 'possibly_sensitive', 'hashtags', 'user_mentions', 'place',
                    'place_coord_boundaries']
@@ -201,7 +201,8 @@ class TweetDfExtractor:
         location = self.find_location()
         place_coord_boundaries = self.find_place_coord_boundaries()
 
-        data = zip(created_at, status, source, text, clean_text, sentiment, polarity, subjectivity, lang, fav_count, retweet_count, screen_name,
+        data = zip(created_at, status, source, text, clean_text, sentiment, polarity, subjectivity, lang, fav_count,
+                   retweet_count, screen_name,
                    follower_count, friends_count, sensitivity, hashtags, mentions, location, place_coord_boundaries)
         df = pd.DataFrame(data=data, columns=columns)
 
