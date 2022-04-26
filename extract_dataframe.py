@@ -49,7 +49,8 @@ class TweetDfExtractor:
         #         text.append(tweet['retweeted_status']['extended_tweet']['full_text'])
         #     else:
         #         text.append('Empty')
-        #
+
+        # text = [tweet['text'] for tweet in self.tweets_list]
         text = [tweet['text'] for tweet in self.tweets_list]
 
         return text
@@ -170,7 +171,10 @@ class TweetDfExtractor:
     def find_place_coord_boundaries(self) -> list:
         coord_boundaries = []
         for tweet in self.tweets_list:
-            coord_boundaries.append(tweet['coordinates'])
+            if ('place' in tweet.keys() and tweet['place'] is not None) and 'bounding_box' in tweet['place'].keys():
+                coord_boundaries.append(tweet['place']['bounding_box']['coordinates'])
+            else:
+                coord_boundaries.append(None)
 
         return coord_boundaries
 
@@ -179,7 +183,7 @@ class TweetDfExtractor:
 
         columns = ['created_at', 'source', 'original_text', 'polarity', 'subjectivity',
                    'lang', 'favorite_count', 'retweet_count', 'original_author', 'followers_count',
-                   'friends_count', 'possibly_sensitive', 'hashtags', 'user_mentions', 'place']
+                   'friends_count', 'possibly_sensitive', 'hashtags', 'user_mentions', 'place', 'place_coord_boundaries']
 
         # columns = ['created_at', 'source', 'original_text', 'clean_text', 'sentiment', 'polarity', 'subjectivity',
         #            'lang', 'favorite_count', 'retweet_count', 'original_author', 'screen_count', 'followers_count',
@@ -203,10 +207,10 @@ class TweetDfExtractor:
         hashtags = self.find_hashtags()
         mentions = self.find_mentions()
         location = self.find_location()
-        # place_coord_boundaries = self.find_place_coord_boundaries()
+        place_coord_boundaries = self.find_place_coord_boundaries()
 
         data = zip(created_at, source, text, polarity, subjectivity, lang, fav_count, retweet_count, screen_name,
-                   follower_count, friends_count, sensitivity, hashtags, mentions, location)
+                   follower_count, friends_count, sensitivity, hashtags, mentions, location, place_coord_boundaries)
         df = pd.DataFrame(data=data, columns=columns)
 
         if save:
