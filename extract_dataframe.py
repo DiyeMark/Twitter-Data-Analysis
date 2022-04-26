@@ -3,6 +3,8 @@ from typing import Tuple, List, Any
 
 import pandas as pd
 from textblob import TextBlob
+import spacy
+nlp = spacy.load('en_core_web_sm')
 
 
 def read_json(json_file: str) -> tuple[int, list[Any]]:
@@ -43,26 +45,21 @@ class TweetDfExtractor:
         return statuses_count
 
     def find_full_text(self) -> list:
-        # text = []
-        # for tweet in self.tweets_list:
-        #     if 'retweeted_status' in tweet.keys() and 'extended_tweet' in tweet['retweeted_status'].keys():
-        #         text.append(tweet['retweeted_status']['extended_tweet']['full_text'])
-        #     else:
-        #         text.append('Empty')
-
-        # text = [tweet['text'] for tweet in self.tweets_list]
         text = [tweet['text'] for tweet in self.tweets_list]
 
         return text
 
-    # TODO: find out what clean_text and replace full_text with clean_text
     def find_clean_text(self) -> list:
         clean_text = []
         for tweet in self.tweets_list:
-            if 'retweeted_status' in tweet.keys() and 'extended_tweet' in tweet['retweeted_status'].keys():
-                clean_text.append(tweet['retweeted_status']['extended_tweet']['full_text'])
-            else:
-                clean_text.append("NO FULL TEXT")
+            # Generate list of tokens
+            doc = nlp(tweet['text'])
+            lemmas = [token.lemma_ for token in doc]
+
+            # Remove tokens that are not alphabetic
+            a_lemmas = [lemma for lemma in lemmas if lemma.isalpha()
+                        or lemma == '-PRON-']
+            clean_text.append(' '.join(a_lemmas))
 
         return clean_text
 
@@ -180,27 +177,22 @@ class TweetDfExtractor:
 
     def get_tweet_df(self, save=True) -> pd.DataFrame:
         """required column to be generated you should be creative and add more features"""
-
-        columns = ['created_at', 'source', 'original_text', 'polarity', 'subjectivity',
+        columns = ['created_at', 'status', 'source', 'original_text', 'clean_text', 'sentiment', 'polarity', 'subjectivity',
                    'lang', 'favorite_count', 'retweet_count', 'original_author', 'followers_count',
-                   'friends_count', 'possibly_sensitive', 'hashtags', 'user_mentions', 'place', 'place_coord_boundaries']
-
-        # columns = ['created_at', 'source', 'original_text', 'clean_text', 'sentiment', 'polarity', 'subjectivity',
-        #            'lang', 'favorite_count', 'retweet_count', 'original_author', 'screen_count', 'followers_count',
-        #            'friends_count', 'possibly_sensitive', 'hashtags', 'user_mentions', 'place',
-        #            'place_coord_boundaries']
+                   'friends_count', 'possibly_sensitive', 'hashtags', 'user_mentions', 'place',
+                   'place_coord_boundaries']
 
         created_at = self.find_created_time()
+        status = self.find_statuses_count()
         source = self.find_source()
         text = self.find_full_text()
-        # clean_text = self.find_clean_text()
-        # sentiment = self.find_sentiment()
+        clean_text = self.find_clean_text()
+        sentiment = self.find_sentiment(text)
         polarity, subjectivity = self.find_sentiments(text)
         lang = self.find_lang()
         fav_count = self.find_favourite_count()
         retweet_count = self.find_retweet_count()
         screen_name = self.find_screen_name()
-        # screen_count = self.find_screen_count()
         follower_count = self.find_followers_count()
         friends_count = self.find_friends_count()
         sensitivity = self.is_sensitive()
@@ -209,7 +201,7 @@ class TweetDfExtractor:
         location = self.find_location()
         place_coord_boundaries = self.find_place_coord_boundaries()
 
-        data = zip(created_at, source, text, polarity, subjectivity, lang, fav_count, retweet_count, screen_name,
+        data = zip(created_at, status, source, text, clean_text, sentiment, polarity, subjectivity, lang, fav_count, retweet_count, screen_name,
                    follower_count, friends_count, sensitivity, hashtags, mentions, location, place_coord_boundaries)
         df = pd.DataFrame(data=data, columns=columns)
 
