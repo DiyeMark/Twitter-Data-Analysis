@@ -7,7 +7,7 @@ import spacy
 nlp = spacy.load('en_core_web_sm')
 
 
-def read_json(json_file: str) -> tuple[int, list[Any]]:
+def read_json(json_file: str)->list:
     """
     json file reader to open and read json files into a list
     Args:
