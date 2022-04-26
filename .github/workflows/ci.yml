@@ -10,6 +10,8 @@ jobs:
           cd $GITHUB_WORKSPACE
           python -m pip install --upgrade pip
           pip install -r requirements.txt
+      - name: Download spacy data
+        run: python -m spacy download en_core_web_sm
       - name: Run tests
         run: python -m unittest tests/test_extract_dataframe.py
       - run: echo "Status is ${{ job.status }}."
