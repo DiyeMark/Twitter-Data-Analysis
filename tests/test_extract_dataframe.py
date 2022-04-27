@@ -7,6 +7,10 @@ from extract_dataframe import read_json
 
 sys.path.append(os.path.abspath(os.path.join('../..')))
 
+cwd = os.getcwd()  # Get the current working directory (cwd)
+files = os.listdir(cwd)  # Get all the files in that directory
+print("Files in %r: %s" % (cwd, files))
+
 _, tweet_list = read_json("data/Economic_Twitter_Data.json")
 
 columns = ['created_at', 'status', 'source', 'original_text', 'clean_text', 'sentiment', 'polarity', 'subjectivity',
