@@ -126,7 +126,7 @@ def sentiment_analysis_topic_modeling():
 
     sgd = joblib.dump(best_model, './trained_models/newsentimentSGDmodel.jl')
 
-
+    # Topic Modeling
     topic_model_data = clean_tweets.copy(deep=True)
 
     def get_hastags_words_list():
