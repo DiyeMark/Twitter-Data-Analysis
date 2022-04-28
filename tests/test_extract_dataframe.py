@@ -8,7 +8,7 @@ from extract_dataframe import read_json
 
 sys.path.append(os.path.abspath(os.path.join('../..')))
 
-with ZipFile('../data/Economic_Twitter_Data.zip') as zip:
+with ZipFile('data/Economic_Twitter_Data.zip') as zip:
     zip.extractall('data')
 
 _, tweet_list = read_json("../data/Economic_Twitter_Data.json")
