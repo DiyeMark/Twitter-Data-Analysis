@@ -14,14 +14,26 @@ class Clean_Tweets:
         self.df = df
         print('Automation in Action...!!!')
 
+    def drop_null_rows(self, df: pd.DataFrame) -> pd.DataFrame:
+        """
+        convert original_text values to clean_text values
+        """
+        df.dropna(inplace=True)
+        df.reset_index(drop=True, inplace=True)
+
+        return df
+
     def drop_unwanted_column(self, df: pd.DataFrame) -> pd.DataFrame:
         """
         remove rows that have column names. This error originated from
-        the data collection stage.  
+        the data collection stage.
         """
-        unwanted_rows = df[df['retweet_count'] == 'retweet_count'].index
+        unwanted_rows = []
+        for col in list(df.columns):
+            unwanted_rows += df[df[col] == col].index
+
         df.drop(unwanted_rows, inplace=True)
-        df = df[df['polarity'] != 'polarity']
+        df.reset_index(drop=True, inplace=True)
 
         return df
 
@@ -30,6 +42,7 @@ class Clean_Tweets:
         drop duplicate rows
         """
         df = df.drop_duplicates(subset='original_text')
+        df.reset_index(drop=True, inplace=True)
 
         return df
 
@@ -50,8 +63,9 @@ class Clean_Tweets:
         df['subjectivity'] = pd.to_numeric(df['subjectivity'], errors='coerce')
         df['favorite_count'] = pd.to_numeric(df['favorite_count'], errors='coerce')
         df['retweet_count'] = pd.to_numeric(df['retweet_count'], errors='coerce')
+        # df['screen_count'] = pd.to_numeric(df['screen_count'], errors='coerce')
         df['followers_count'] = pd.to_numeric(df['followers_count'], errors='coerce')
-        df['friends_count'] = pd.to_numeric(df['friends_count'], errors='coerce')
+        # df['friends_count'] = pd.to_numeric(df['friends_count'], errors='coerce')
 
         return df
 
@@ -67,4 +81,10 @@ class Clean_Tweets:
 if __name__ == '__main__':
     tweet_df = pd.read_csv('data/processed_tweet_data.csv')
     tweet_cleaner = Clean_Tweets(tweet_df)
-
+    # clean_df = tweet_cleaner.drop_null_rows(tweet_df)
+    clean_df = tweet_cleaner.drop_duplicate(tweet_df)
+    clean_df = tweet_cleaner.remove_non_english_tweets(clean_df)
+    clean_df = tweet_cleaner.convert_to_numbers(clean_df)
+    clean_df = tweet_cleaner.convert_to_datetime(clean_df)
+    clean_df = tweet_cleaner.drop_unwanted_column(clean_df)
+    clean_df.to_csv('data/clean_tweet_data.csv')

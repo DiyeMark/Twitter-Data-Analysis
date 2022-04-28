@@ -2,14 +2,14 @@ import os
 import sys
 import unittest
 import pandas as pd
+from zipfile import ZipFile
 from extract_dataframe import TweetDfExtractor
 from extract_dataframe import read_json
 
 sys.path.append(os.path.abspath(os.path.join('../..')))
 
-cwd = os.getcwd()  # Get the current working directory (cwd)
-files = os.listdir(cwd)  # Get all the files in that directory
-print("Files in %r: %s" % (cwd, files))
+with ZipFile('../data/Economic_Twitter_Data.zip') as zip:
+    zip.extractall('data')
 
 _, tweet_list = read_json("../data/Economic_Twitter_Data.json")
 

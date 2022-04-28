@@ -12,7 +12,7 @@ def read_json(json_file: str) -> list:
     Args:
     -----
     json_file: str - path of a json file
-    
+
     Returns
     -------
     length of the json file and a list of json
@@ -28,7 +28,7 @@ def read_json(json_file: str) -> list:
 class TweetDfExtractor:
     """
     this class will parse tweets json into a pandas dataframe
-    
+
     Return
     ------
     dataframe
@@ -62,11 +62,15 @@ class TweetDfExtractor:
 
         return clean_text
 
-    def find_sentiment(self, text: list) -> list:
+    def find_sentiment(self, polarity: list) -> list:
         sentiment = []
-        for tweet in text:
-            blob = TextBlob(tweet)
-            sentiment.append(blob.sentiment)
+        for i in range(len(polarity)):
+            if polarity[i] > 0:
+                sentiment.append(1)
+            elif polarity[i] < 0:
+                sentiment.append(0)
+            else:
+                sentiment.append(-1)
 
         return sentiment
 
@@ -101,9 +105,8 @@ class TweetDfExtractor:
 
         return screen_name
 
-    # TODO: find out what screen_count and relace screen_name with screen_count
     def find_screen_count(self) -> list:
-        screen_count = [tweet['user']['screen_name'] for tweet in self.tweets_list]
+        screen_count = [tweet['user']['listed_count'] for tweet in self.tweets_list]
 
         return screen_count
 
@@ -178,7 +181,7 @@ class TweetDfExtractor:
         """required column to be generated you should be creative and add more features"""
         columns = ['created_at', 'status', 'source', 'original_text', 'clean_text', 'sentiment', 'polarity',
                    'subjectivity',
-                   'lang', 'favorite_count', 'retweet_count', 'original_author', 'followers_count',
+                   'lang', 'favorite_count', 'retweet_count', 'original_author', 'screen_count', 'followers_count',
                    'friends_count', 'possibly_sensitive', 'hashtags', 'user_mentions', 'place',
                    'place_coord_boundaries']
 
@@ -187,12 +190,13 @@ class TweetDfExtractor:
         source = self.find_source()
         text = self.find_full_text()
         clean_text = self.find_clean_text()
-        sentiment = self.find_sentiment(text)
         polarity, subjectivity = self.find_sentiments(text)
+        sentiment = self.find_sentiment(polarity)
         lang = self.find_lang()
         fav_count = self.find_favourite_count()
         retweet_count = self.find_retweet_count()
         screen_name = self.find_screen_name()
+        screen_count = self.find_screen_count()
         follower_count = self.find_followers_count()
         friends_count = self.find_friends_count()
         sensitivity = self.is_sensitive()
@@ -202,7 +206,7 @@ class TweetDfExtractor:
         place_coord_boundaries = self.find_place_coord_boundaries()
 
         data = zip(created_at, status, source, text, clean_text, sentiment, polarity, subjectivity, lang, fav_count,
-                   retweet_count, screen_name,
+                   retweet_count, screen_name, screen_count,
                    follower_count, friends_count, sensitivity, hashtags, mentions, location, place_coord_boundaries)
         df = pd.DataFrame(data=data, columns=columns)
 
