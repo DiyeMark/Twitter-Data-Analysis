@@ -4,15 +4,13 @@ jobs:
   run-test-on-push:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - name: Install requirements
+      - uses: actions/checkout@v3
+      - name: Install dependencies
         run: |
-          cd $GITHUB_WORKSPACE
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
       - name: Download spacy data
         run: python -m spacy download en_core_web_sm
-      - name: Run tests
-        working-directory: ./tests
-        run: python -m unittest test_extract_dataframe.py
-      - run: echo "Status is ${{ job.status }}."
+      - name: Test with unittest
+        run: |
+          python -m unittest
