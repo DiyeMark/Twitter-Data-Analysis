@@ -77,6 +77,30 @@ class Clean_Tweets:
 
         return df
 
+    def polarity_category(self, p):
+        """
+        converst polarity to 3 group from floating value
+        """
+        if p > 0:
+            return "positive"
+        elif p < 0:
+            return "negative"
+        else:
+            return "neutral"
+
+    def subjectivity_category(self, p):
+        """
+        converst polarity to 3 group from floating value
+        """
+        if p > 0.75:
+            return "very subjective"
+        elif p > 5:
+            return "subjective"
+        elif p > .25:
+            return "objective"
+        else:
+            return "very objective"
+
 
 if __name__ == '__main__':
     tweet_df = pd.read_csv('data/processed_tweet_data.csv')
